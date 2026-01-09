@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>SkinWise AI - 피부 분석</title>
     
     <!-- Tailwind CSS -->
@@ -767,40 +767,46 @@
 
                     {/* Full Screen Camera Overlay */}
                     {isCameraOpen && (
-                        <div className="fixed inset-0 z-[60] bg-black flex flex-col">
-                            {/* Video Area */}
-                            <div className="relative flex-1 bg-black overflow-hidden">
-                                <video 
-                                    ref={videoRef} 
-                                    autoPlay 
-                                    playsInline 
-                                    className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" 
-                                />
-                            </div>
+                        <div className="fixed inset-0 z-[100] bg-black">
+                            {/* Video Background */}
+                            <video 
+                                ref={videoRef} 
+                                autoPlay 
+                                playsInline 
+                                className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" 
+                            />
 
                             {/* Top Bar (Close) */}
-                            <div className="absolute top-0 left-0 right-0 p-4 flex justify-end z-10">
+                            <div className="absolute top-0 left-0 right-0 p-6 flex justify-end z-50">
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); stopCamera(); }}
-                                    className="bg-black/50 text-white p-3 rounded-full hover:bg-black/70 backdrop-blur-md"
+                                    className="bg-black/40 text-white p-3 rounded-full hover:bg-black/60 backdrop-blur-md transition-colors"
                                 >
-                                    <XIcon size={24} />
+                                    <XIcon size={28} />
                                 </button>
                             </div>
 
                             {/* Bottom Bar (Capture) */}
-                            <div className="bg-black/80 h-32 flex items-center justify-center gap-12 pb-4 safe-area-bottom">
+                            <div 
+                                className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-12 pb-8 pt-12 bg-gradient-to-t from-black/90 to-transparent"
+                                style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
+                            >
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); stopCamera(); }}
-                                    className="text-white font-medium hover:text-white/80"
+                                    className="text-white font-medium text-lg hover:text-white/80 shadow-black drop-shadow-md"
                                 >
                                     취소
                                 </button>
+                                
+                                {/* Shutter Button */}
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); capturePhoto(); }}
-                                    className="w-20 h-20 rounded-full border-4 border-white bg-white/20 backdrop-blur-sm transition-transform active:scale-95 hover:bg-white/30" 
-                                />
-                                <div className="w-8" /> {/* spacer */}
+                                    className="w-20 h-20 rounded-full border-[6px] border-white/30 bg-white shadow-lg active:scale-95 transition-transform"
+                                >
+                                    <div className="w-full h-full rounded-full border-[2px] border-black/10"></div>
+                                </button>
+                                
+                                <div className="w-10" /> {/* spacer to balance layout */}
                             </div>
                         </div>
                     )}
