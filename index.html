@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SkinWise AI - 피부 분석</title>
     
     <!-- Tailwind CSS -->
@@ -146,12 +146,9 @@
         );
 
         // --- Analysis Logic ---
-        
-        // Pseudo-random number generator seeded by string
         const createSeededRandom = (seedStr) => {
             let hash = 0;
             if (seedStr.length === 0) return () => Math.random();
-            // Sample string to make hashing faster
             for (let i = 0; i < seedStr.length; i += 100) {
                 const char = seedStr.charCodeAt(i);
                 hash = ((hash << 5) - hash) + char;
@@ -159,7 +156,6 @@
             }
             let seed = Math.abs(hash);
             
-            // Linear Congruential Generator
             return () => {
                 seed = (seed * 9301 + 49297) % 233280;
                 return seed / 233280;
@@ -167,7 +163,6 @@
         };
 
         const analyzeSkin = async (imageData, gender) => {
-            // Seed the random generator with the image data for consistent results
             const rng = createSeededRandom(imageData);
             const range = (min, max) => Math.floor(rng() * (max - min) + min);
 
@@ -189,11 +184,8 @@
 
                     const totalScore = Math.floor(details.reduce((acc, curr) => acc + curr.value, 0) / details.length);
                     const sortedDetails = [...details].sort((a, b) => a.value - b.value);
-                    
-                    // Changed to slice 3 items instead of 2
                     const worstThree = sortedDetails.slice(0, 3);
                     
-                    // Product Database (Gender Specific)
                     const productDB = {
                         female: {
                             "수분도": { 
@@ -273,7 +265,6 @@
 
                     const products = worstThree.map(item => productDB[gender][item.name]);
 
-                    // Personal Color Database
                     const seasons = [
                         {
                             name: "봄 웜톤 (Spring Warm)",
@@ -305,7 +296,6 @@
                         }
                     ];
 
-                    // Select season deterministically
                     const seasonIndex = Math.floor(rng() * 4);
                     const personalColor = seasons[seasonIndex];
 
@@ -483,7 +473,7 @@
                             <ShoppingBag className="text-indigo-500" /> AI 맞춤 화장품 추천
                         </h3>
                         <p className="text-slate-500 mb-6 text-sm">
-                            현재 피부 상태와 성별을 고려한 최적의 솔루션입니다.
+                            현재 피부 상태와 성별을 고려한 최적의 솔루션입니다. 제품명을 클릭하여 바로 검색해보세요.
                         </p>
                         <div className="grid gap-4">
                             {result.products.map((product, idx) => (
@@ -494,7 +484,17 @@
                                                 <span className="bg-white text-indigo-600 border border-indigo-200 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Solution {idx + 1}</span>
                                                 <span className="text-xs font-bold text-indigo-500">{product.brand}</span>
                                             </div>
-                                            <h4 className="font-bold text-slate-900 text-lg">{product.name}</h4>
+                                            <a 
+                                                href={`https://www.google.com/search?q=${encodeURIComponent(product.query)}&tbm=shop`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block group-hover:text-indigo-700 transition-colors"
+                                            >
+                                                <h4 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                                                    {product.name}
+                                                    <Search size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400"/>
+                                                </h4>
+                                            </a>
                                             
                                             <div className="mt-3 space-y-2 bg-white/60 p-3 rounded-xl border border-indigo-100/50">
                                                 <div className="flex items-start gap-2 text-sm text-slate-700">
@@ -679,52 +679,18 @@
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                        {/* Camera Card */}
+                        {/* Camera Trigger Card (Trigger only) */}
                         <div 
-                            onClick={isCameraOpen ? undefined : startCamera}
-                            className={`group relative overflow-hidden bg-white rounded-3xl border-2 transition-all cursor-pointer aspect-[4/5] flex flex-col items-center justify-center gap-6 shadow-sm hover:shadow-xl ${isCameraOpen ? 'border-slate-800' : 'border-slate-100 hover:border-indigo-500'}`}
+                            onClick={startCamera}
+                            className="group relative overflow-hidden bg-white rounded-3xl border-2 border-slate-100 hover:border-indigo-500 transition-all cursor-pointer aspect-[4/5] flex flex-col items-center justify-center gap-6 shadow-sm hover:shadow-xl"
                         >
-                            {!isCameraOpen ? (
-                            <>
-                                <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-                                <Camera size={40} />
-                                </div>
-                                <div className="text-center px-6">
-                                <p className="font-bold text-xl text-slate-900 mb-2">셀카 촬영하기</p>
-                                <p className="text-slate-500">카메라를 켜고<br/>실시간으로 진단하세요</p>
-                                </div>
-                            </>
-                            ) : (
-                            <div className="absolute inset-0 bg-black flex flex-col">
-                                <video 
-                                ref={videoRef} 
-                                autoPlay 
-                                playsInline 
-                                className="flex-1 w-full object-cover scale-x-[-1]" 
-                                />
-                                <div className="absolute top-4 right-4 z-10">
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); stopCamera(); }}
-                                    className="bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
-                                >
-                                    <XIcon size={24} />
-                                </button>
-                                </div>
-                                <div className="h-24 bg-black/80 flex items-center justify-center gap-8 z-20">
-                                    <button 
-                                    onClick={(e) => { e.stopPropagation(); stopCamera(); }}
-                                    className="text-white font-medium hover:text-white/80"
-                                    >
-                                    취소
-                                    </button>
-                                    <button 
-                                    onClick={(e) => { e.stopPropagation(); capturePhoto(); }}
-                                    className="w-16 h-16 rounded-full border-4 border-white bg-white/20 backdrop-blur-sm transition-transform active:scale-95 hover:bg-white/30" 
-                                    />
-                                    <div className="w-8" /> {/* spacer */}
-                                </div>
+                            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                            <Camera size={40} />
                             </div>
-                            )}
+                            <div className="text-center px-6">
+                            <p className="font-bold text-xl text-slate-900 mb-2">셀카 촬영하기</p>
+                            <p className="text-slate-500">카메라를 켜고<br/>실시간으로 진단하세요</p>
+                            </div>
                         </div>
 
                         {/* Upload Card */}
@@ -799,6 +765,46 @@
                     </div>
                     )}
 
+                    {/* Full Screen Camera Overlay */}
+                    {isCameraOpen && (
+                        <div className="fixed inset-0 z-[60] bg-black flex flex-col">
+                            {/* Video Area */}
+                            <div className="relative flex-1 bg-black overflow-hidden">
+                                <video 
+                                    ref={videoRef} 
+                                    autoPlay 
+                                    playsInline 
+                                    className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" 
+                                />
+                            </div>
+
+                            {/* Top Bar (Close) */}
+                            <div className="absolute top-0 left-0 right-0 p-4 flex justify-end z-10">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); stopCamera(); }}
+                                    className="bg-black/50 text-white p-3 rounded-full hover:bg-black/70 backdrop-blur-md"
+                                >
+                                    <XIcon size={24} />
+                                </button>
+                            </div>
+
+                            {/* Bottom Bar (Capture) */}
+                            <div className="bg-black/80 h-32 flex items-center justify-center gap-12 pb-4 safe-area-bottom">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); stopCamera(); }}
+                                    className="text-white font-medium hover:text-white/80"
+                                >
+                                    취소
+                                </button>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); capturePhoto(); }}
+                                    className="w-20 h-20 rounded-full border-4 border-white bg-white/20 backdrop-blur-sm transition-transform active:scale-95 hover:bg-white/30" 
+                                />
+                                <div className="w-8" /> {/* spacer */}
+                            </div>
+                        </div>
+                    )}
+
                     <canvas ref={canvasRef} className="hidden" />
                 </main>
 
@@ -819,6 +825,4 @@
         root.render(<App />);
     </script>
 </body>
-
 </html>
-
